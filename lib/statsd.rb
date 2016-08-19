@@ -233,27 +233,6 @@ class Statsd
     service_check_string = format_service_check(name, status, opts)
     send_to_socket service_check_string
   end
-  def format_service_check(name, status, opts={})
-    sc_string = "_sc|#{name}|#{status}"
-
-    SC_OPT_KEYS.each do |name_key|
-      if opts[name_key[0].to_sym]
-        if name_key[0] == 'tags'
-          tags = opts[:tags].map {|tag| remove_pipes(tag) }
-          tags = "#{tags.join(",")}" unless tags.empty?
-          sc_string << "|##{tags}"
-        elsif name_key[0] == 'message'
-          message = remove_pipes(opts[:message])
-          escaped_message = escape_service_check_message(message)
-          sc_string << "|m:#{escaped_message}"
-        else
-          value = remove_pipes(opts[name_key[0].to_sym])
-          sc_string << "|#{name_key[1]}#{value}"
-        end
-      end
-    end
-    return sc_string
-  end
 
   # This end point allows you to post events to the stream. You can tag them, set priority and even aggregate them with other events.
   #
@@ -295,6 +274,31 @@ class Statsd
     alias :send_stat :send_to_socket
   end
 
+  private
+
+  def format_service_check(name, status, opts={})
+    sc_string = "_sc|#{name}|#{status}"
+
+    SC_OPT_KEYS.each do |name_key|
+      if opts[name_key[0].to_sym]
+        if name_key[0] == 'tags'
+          tags = opts[:tags].map {|tag| remove_pipes(tag) }
+          tags = "#{tags.join(",")}" unless tags.empty?
+          sc_string << "|##{tags}"
+        elsif name_key[0] == 'message'
+          message = remove_pipes(opts[:message])
+          escaped_message = escape_service_check_message(message)
+          sc_string << "|m:#{escaped_message}"
+        else
+          value = remove_pipes(opts[name_key[0].to_sym])
+          sc_string << "|#{name_key[1]}#{value}"
+        end
+      end
+    end
+
+    sc_string
+  end
+
   def format_event(title, text, opts={})
     escaped_title = escape_event_content(title)
     escaped_text = escape_event_content(text)
@@ -317,8 +321,6 @@ class Statsd
     raise "Event #{title} payload is too big (more that 8KB), event discarded" if event_string_data.length > 8 * 1024
     return event_string_data
   end
-
-  private
 
   def escape_event_content(msg)
     msg.gsub "\n", "\\n"
