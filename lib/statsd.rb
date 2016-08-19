@@ -39,6 +39,7 @@ class Statsd
         ['tags', '#'],
         ['message', 'm:']
   ]
+
   OK        = 0
   WARNING   = 1
   CRITICAL  = 2
@@ -203,6 +204,7 @@ class Statsd
     time_since(stat, start, opts)
     raise
   end
+
   # Sends a value to be tracked as a set to the statsd server.
   #
   # @param [String] stat stat name.
@@ -215,7 +217,6 @@ class Statsd
   def set(stat, value, opts={})
     send_stats stat, value, :s, opts
   end
-
 
   # This method allows you to send custom service check statuses.
   #

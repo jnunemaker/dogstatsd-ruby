@@ -214,6 +214,7 @@ describe Statsd do
   describe "#sampled" do
     describe "when the sample rate is 1" do
       before { class << @statsd; def rand; raise end; end }
+
       it "should send" do
         @statsd.timing('foobar', 500, :sample_rate=>1)
         @statsd.socket.recv.must_equal ['foobar:500|ms']
@@ -222,6 +223,7 @@ describe Statsd do
 
     describe "when the sample rate is greater than a random value [0,1]" do
       before { class << @statsd; def rand; 0; end; end } # ensure delivery
+
       it "should send" do
         @statsd.timing('foobar', 500, :sample_rate=>0.5)
         @statsd.socket.recv.must_equal ['foobar:500|ms|@0.5']
@@ -230,6 +232,7 @@ describe Statsd do
 
     describe "when the sample rate is less than a random value [0,1]" do
       before { class << @statsd; def rand; 1; end; end } # ensure no delivery
+
       it "should not send" do
         @statsd.timing('foobar', 500, :sample_rate=>0.5).must_equal nil
       end
@@ -237,6 +240,7 @@ describe Statsd do
 
     describe "when the sample rate is equal to a random value [0,1]" do
       before { class << @statsd; def rand; 0; end; end } # ensure delivery
+
       it "should send" do
         @statsd.timing('foobar', 500, :sample_rate=>0.5)
         @statsd.socket.recv.must_equal ['foobar:500|ms|@0.5']
@@ -325,7 +329,6 @@ describe Statsd do
   end
 
   describe "tagged" do
-
     it "gauges support tags" do
       @statsd.gauge("gauge", 1, :tags=>%w(country:usa state:ny))
       @statsd.socket.recv.must_equal ['gauge:1|g|#country:usa,state:ny']
@@ -345,7 +348,6 @@ describe Statsd do
     it "timing support tags" do
       @statsd.timing("t", 200, :tags=>%w(country:canada other))
       @statsd.socket.recv.must_equal ['t:200|ms|#country:canada,other']
-
       @statsd.time('foobar', :tags => ["123"]) { sleep(0.001); 'test' }
     end
 
@@ -369,7 +371,6 @@ describe Statsd do
   end
 
   describe "batched" do
-
       it "should allow to send single sample in one packet" do
         @statsd.batch do |s|
             s.increment("mycounter")
@@ -544,7 +545,6 @@ describe Statsd do
                               :tags => tags)
         @statsd.socket.recv.must_equal ["_sc|#{name}|#{status}|h:#{hostname}|##{tags_joined}|m:testing  m\\: \\n"]
       end
-
     end
   end
 end
